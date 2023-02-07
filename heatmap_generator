@@ -1,1 +1,71 @@
 
+// generate heat map by interpolating over a range of some small number of predefined colors
+// sjr 2020
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <inttypes.h>
+
+//http://www.andrewnoske.com/wiki/Code_-_heatmaps_and_color_gradients
+void getHeatMapColor(float value, float *red, float *green, float *blue)
+{
+  const int NUM_COLORS = 4;
+  static float color[][3] = { {0,0,.5}, {1,0,0}, {.8,.8,0}, {.7,.7,.7} };
+    // A static array of N colors, e.g.  (blue, red,  yellow, white) using {r,g,b} for each.
+    // guess at matching intensities -- works pretty well!
+  int idx1;        // |-- Our desired color will be between these two indexes in "color".
+  int idx2;        // |
+  float fractBetween = 0;  // Fraction between "idx1" and "idx2" where our value is.
+
+  if(value <= 0)      {  idx1 = idx2 = 0;            }    // accounts for an input <=0
+  else if(value >= 1)  {  idx1 = idx2 = NUM_COLORS-1; }    // accounts for an input >=0
+  else
+  {
+    value = value * (NUM_COLORS-1);        // Will multiply value by 3.
+    idx1  = floor(value);                  // Our desired color will be after this index.
+    idx2  = idx1+1;                        // ... and before this index (inclusive).
+    fractBetween = value - (float)idx1;    // Distance between the two indexes (0-1).
+  }
+
+  *red   = (color[idx2][0] - color[idx1][0])*fractBetween + color[idx1][0];
+  *green = (color[idx2][1] - color[idx1][1])*fractBetween + color[idx1][1];
+  *blue  = (color[idx2][2] - color[idx1][2])*fractBetween + color[idx1][2];
+}
+int main()   // to test the code
+{
+  float r,g,b,value;
+  uint16_t table[256];
+
+  int i=0;
+  for(i=0; i<256; i++)
+  {
+    value=((float)i)/255.0;
+    getHeatMapColor(value, &r, &g, &b);
+
+    uint16_t result, red, green, blue, ir, ig, ib ;
+
+    ir = 255.0*r;
+    ig = 255.0*g;
+    ib = 255.0*b;
+
+    red = ir * 31 / 255;
+    green = ig * 63/ 255;
+    blue = ib * 31 / 255;
+
+    green = green << 5;
+    red = red << 11;
+
+    result = red | green | blue;
+    table[i]=result;
+    printf(" {%d, %d, %d, %u},\r\n",ir,ig,ib,result);
+  }
+//  print data table for array initialization.
+  printf(" ={");
+  int j=0;
+  for(i=0; i<256; i++) {
+    j++;
+    printf("%d,", table[i]);
+    if (j==10) {printf("\r\n"); j=0;}
+  }
+  printf("}\r\n");  //extra "," to remove by editing.
+}
