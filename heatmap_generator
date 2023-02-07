@@ -1,19 +1,21 @@
 
-// generate heat map by interpolating over a range of some small number of predefined colors
+//C program to generate heat map data table by interpolating over a range of some predefined colors
 // sjr 2020
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <inttypes.h>
-
+// see
 //http://www.andrewnoske.com/wiki/Code_-_heatmaps_and_color_gradients
+
 void getHeatMapColor(float value, float *red, float *green, float *blue)
 {
+  // A static array of N colors, e.g.  (blue, red,  yellow, white) using {r,g,b} for each.
   const int NUM_COLORS = 4;
   static float color[][3] = { {0,0,.5}, {1,0,0}, {.8,.8,0}, {.7,.7,.7} };
-    // A static array of N colors, e.g.  (blue, red,  yellow, white) using {r,g,b} for each.
-    // guess at matching intensities -- works pretty well!
-  int idx1;        // |-- Our desired color will be between these two indexes in "color".
+    // guessed at matching intensities at boundaries -- works pretty well!
+
+int idx1;        // |-- Our desired color will be between these two indexes in "color".
   int idx2;        // |
   float fractBetween = 0;  // Fraction between "idx1" and "idx2" where our value is.
 
